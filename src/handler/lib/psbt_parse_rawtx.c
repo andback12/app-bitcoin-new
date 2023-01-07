@@ -281,6 +281,16 @@ static int parse_rawtx_version(parse_rawtx_state_t *state, buffer_t *buffers[2])
     return result;
 }
 
+static int parse_rawtx_time(parse_rawtx_state_t *state, buffer_t *buffers[2]) {
+    uint8_t time_bytes[4];
+
+    bool result = dbuffer_read_bytes(buffers, time_bytes, 4);
+    if (result) {
+        crypto_hash_update(&state->hash_context->header, time_bytes, 4);
+    }
+    return result;
+}
+
 // Checks if this transaction is serialized according to bip144 (segwit), that is, it has a 0x00
 // marker followed by a 0x01 flag where the input count would be expected in the legacy
 // serialization. The marker and flag are read from the buffers. Does not read any bytes from the
@@ -482,6 +492,7 @@ static int parse_rawtx_locktime(parse_rawtx_state_t *state, buffer_t *buffers[2]
 }
 
 static const parsing_step_t parse_rawtx_steps[] = {(parsing_step_t) parse_rawtx_version,
+                                                   (parsing_step_t) parse_rawtx_time,
                                                    (parsing_step_t) parse_rawtx_check_segwit,
                                                    (parsing_step_t) parse_rawtx_input_count,
                                                    (parsing_step_t) parse_rawtx_inputs_init,
